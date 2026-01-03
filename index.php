@@ -425,6 +425,18 @@
         
         renderVideos();
     }
+    
+    function updateLoadMoreText() {
+        const remaining = filteredVideos.length - (currentPage * videosPerPage);
+    
+        if (remaining > 0) {
+            loadText.textContent = `Load ${Math.min(remaining, videosPerPage)} more`;
+            loadMoreButton.style.display = 'flex';
+        } else {
+            loadMoreButton.style.display = 'none';
+        }
+    }
+
 
     // Render videos for the current page
     function renderVideos() {
@@ -433,27 +445,53 @@
             loadMoreButton.style.display = 'none';
             return;
         }
-        
-        const startIndex = 0;
+    
+        // Calculate start and end using currentPage so we only render the new slice
+        const startIndex = (currentPage - 1) * videosPerPage;
         const endIndex = Math.min(currentPage * videosPerPage, filteredVideos.length);
         const videosToRender = filteredVideos.slice(startIndex, endIndex);
-        
+    
+        // If it's the first page, clear existing content; otherwise append only the new items
         if (currentPage === 1) {
             videoGrid.innerHTML = '';
         }
-        
+    
         videosToRender.forEach(video => {
             const videoCard = createVideoCard(video);
             videoGrid.appendChild(videoCard);
         });
-        
+    
         // Show or hide load more button
         if (endIndex >= filteredVideos.length) {
             loadMoreButton.style.display = 'none';
         } else {
             loadMoreButton.style.display = 'flex';
         }
+        
+        updateLoadMoreText();
     }
+
+    
+    // Load more videos when the button is clicked
+    function loadMoreVideos() {
+        if (isLoading) return;
+    
+        isLoading = true;
+        loadText.textContent = 'Loading...';
+        loadingSpinner.style.display = 'inline-block';
+        loadMoreButton.disabled = true;
+    
+        setTimeout(() => {
+            currentPage++;
+            renderVideos();
+    
+            isLoading = false;
+            loadingSpinner.style.display = 'none';
+            loadMoreButton.disabled = false;
+        }, 800);
+    }
+
+
 
     // Create a video card element
     function createVideoCard(video) {
@@ -615,27 +653,6 @@
         videoElement.style.position = '';
         videoElement.style.left = '';
         videoElement.style.transform = '';
-    }
-
-    // Load more videos when the button is clicked
-    function loadMoreVideos() {
-        if (isLoading) return;
-        
-        isLoading = true;
-        loadText.textContent = 'Loading...';
-        loadingSpinner.style.display = 'inline-block';
-        loadMoreButton.disabled = true;
-        
-        // Simulate network delay for a better UX
-        setTimeout(() => {
-            currentPage++;
-            renderVideos();
-            
-            isLoading = false;
-            loadText.textContent = 'Load More';
-            loadingSpinner.style.display = 'none';
-            loadMoreButton.disabled = false;
-        }, 800);
     }
 
     // Show or hide the scroll to top button
